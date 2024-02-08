@@ -2,8 +2,8 @@
 // All rights reserved.
 // Distributed under BSD2 license that can be found in the LICENSE file.
 
-// Package matrix provides a representation
-// of a phylogenetic data matrix.
+// Package matrix provides a matrix of taxon specimens
+// and character observations.
 package matrix
 
 import (
@@ -22,26 +22,32 @@ const Unknown = "<unknown>"
 // and their character states.
 type Matrix struct {
 	chars map[string]*character
-	terms map[string]*terminal
+	specs map[string]*specimen
 }
 
 // New creates a new empty matrix.
 func New() *Matrix {
 	return &Matrix{
 		chars: make(map[string]*character),
-		terms: make(map[string]*terminal),
+		specs: make(map[string]*specimen),
 	}
 }
 
 // Add adds a new observation
 // (i.e., a character state) to the matrix
-// for a given terminal,
+// for a given taxon specimen,
 // and character.
-func (m *Matrix) Add(term, char, state string) {
-	term = canon(term)
-	if term == "" {
+func (m *Matrix) Add(taxon, spec, char, state string) {
+	taxon = canon(taxon)
+	if taxon == "" {
 		return
 	}
+
+	spec = strings.Join(strings.Fields(spec), " ")
+	if spec == "" {
+		return
+	}
+	spec = strings.ToLower(spec)
 
 	char = strings.Join(strings.Fields(char), " ")
 	if char == "" {
@@ -65,16 +71,20 @@ func (m *Matrix) Add(term, char, state string) {
 	}
 	c.states[state] = true
 
-	t, ok := m.terms[term]
+	sp, ok := m.specs[spec]
 	if !ok {
-		t = &terminal{
-			name: term,
-			obs:  make(map[string]map[string]*observation),
+		sp = &specimen{
+			taxon: taxon,
+			name:  spec,
+			obs:   make(map[string]map[string]*observation),
 		}
-		m.terms[term] = t
+		m.specs[spec] = sp
+	}
+	if sp.taxon != taxon {
+		return
 	}
 
-	obs, ok := t.obs[char]
+	obs, ok := sp.obs[char]
 	if !ok {
 		obs = make(map[string]*observation)
 	}
@@ -82,14 +92,14 @@ func (m *Matrix) Add(term, char, state string) {
 	if state == NotApplicable {
 		obs = make(map[string]*observation)
 	} else if state == Unknown {
-		delete(t.obs, char)
+		delete(sp.obs, char)
 		return
 	} else if isNoObservation(obs) {
 		obs = make(map[string]*observation)
 	}
 
 	obs[state] = &observation{name: state}
-	t.obs[char] = obs
+	sp.obs[char] = obs
 }
 
 // Chars returns the characters in the matrix.
@@ -103,13 +113,15 @@ func (m *Matrix) Chars() []string {
 }
 
 // Obs returns the states assigned for character
-// in a taxon.
-func (m *Matrix) Obs(term, char string) []string {
-	term = canon(term)
-	if term == "" {
-		return []string{Unknown}
+// in a specimen.
+func (m *Matrix) Obs(spec, char string) []string {
+	spec = strings.Join(strings.Fields(spec), " ")
+	if spec == "" {
+		return nil
 	}
-	t, ok := m.terms[term]
+	spec = strings.ToLower(spec)
+
+	sp, ok := m.specs[spec]
 	if !ok {
 		return []string{Unknown}
 	}
@@ -120,7 +132,7 @@ func (m *Matrix) Obs(term, char string) []string {
 	}
 	char = strings.ToLower(char)
 
-	obs, ok := t.obs[char]
+	obs, ok := sp.obs[char]
 	if !ok {
 		return []string{Unknown}
 	}
@@ -156,14 +168,14 @@ func (m *Matrix) States(char string) []string {
 	return states
 }
 
-// Terminals returns the terminals in the matrix.
-func (m *Matrix) Terminals() []string {
-	terms := make([]string, 0, len(m.terms))
-	for _, t := range m.terms {
-		terms = append(terms, t.name)
+// Specimens returns the specimens in the matrix.
+func (m *Matrix) Specimens() []string {
+	specs := make([]string, 0, len(m.specs))
+	for _, t := range m.specs {
+		specs = append(specs, t.name)
 	}
-	slices.Sort(terms)
-	return terms
+	slices.Sort(specs)
+	return specs
 }
 
 type character struct {
@@ -171,9 +183,10 @@ type character struct {
 	states map[string]bool
 }
 
-type terminal struct {
-	name string
-	obs  map[string]map[string]*observation
+type specimen struct {
+	taxon string
+	name  string
+	obs   map[string]map[string]*observation
 }
 
 type observation struct {
@@ -181,7 +194,6 @@ type observation struct {
 	ref     string // bibliographic reference
 	img     string // a link to an image
 	comment string // a commentary of the observation
-
 }
 
 func isNoObservation(obs map[string]*observation) bool {
