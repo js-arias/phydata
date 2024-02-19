@@ -133,5 +133,86 @@ func newMatrix() *matrix.Matrix {
 	m.Add("Ranidae", "Ranidae:kluge69", "pectoral girdle", "finnisternal")
 	m.Add("Ranidae", "Ranidae:kluge69", "scapula, relation to clavical", "juxtapose")
 
+	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "ascaphus-tail.png", matrix.ImageLink)
+	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "it might be not homologous with tail muscles of salamanders", matrix.Comments)
+
+	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "kluge1969", matrix.Reference)
+	m.Set("Ascaphidae:kluge69", "ribs, fusion", "free", "kluge1969", matrix.Reference)
+	m.Set("Ascaphidae:kluge69", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
+	m.Set("Ascaphidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("Ascaphidae:kluge69", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("Discoglossidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("Discoglossidae:kluge69", "ribs, fusion", "free", "kluge1969", matrix.Reference)
+	m.Set("Discoglossidae:kluge69", "vertebral ossification", "stegochordal", "kluge1969", matrix.Reference)
+	m.Set("Discoglossidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("Discoglossidae:kluge69", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("Pipidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("Pipidae:kluge69", "ribs, fusion", "fused in adults", "kluge1969", matrix.Reference)
+	m.Set("Pipidae:kluge69", "vertebral ossification", "stegochordal", "kluge1969", matrix.Reference)
+	m.Set("Pipidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("Pipidae:kluge69", "pectoral girdle", "finnisternal", "kluge1969", matrix.Reference)
+	m.Set("Pipidae:kluge69", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("Rhinophrynidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("Rhinophrynidae:kluge69", "ribs, fusion", "<NA>", "kluge1969", matrix.Reference)
+	m.Set("Rhinophrynidae:kluge69", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
+	m.Set("Rhinophrynidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("Rhinophrynidae:kluge69", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("Bufonidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("Bufonidae:kluge69", "ribs, fusion", "fused", "kluge1969", matrix.Reference)
+	m.Set("Bufonidae:kluge69", "vertebral ossification", "holochordal", "kluge1969", matrix.Reference)
+	m.Set("Bufonidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("Bufonidae:kluge69", "scapula, relation to clavical", "juxtapose", "kluge1969", matrix.Reference)
+	m.Set("Ranidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("Ranidae:kluge69", "ribs, fusion", "fused", "kluge1969", matrix.Reference)
+	m.Set("Ranidae:kluge69", "vertebral ossification", "holochordal", "kluge1969", matrix.Reference)
+	m.Set("Ranidae:kluge69", "pectoral girdle", "finnisternal", "kluge1969", matrix.Reference)
+	m.Set("Ranidae:kluge69", "scapula, relation to clavical", "juxtapose", "kluge1969", matrix.Reference)
+
 	return m
+}
+
+func cmpMatrix(t testing.TB, got, want *matrix.Matrix) {
+	t.Helper()
+
+	specs := want.Specimens()
+	sp := got.Specimens()
+	if !reflect.DeepEqual(sp, specs) {
+		t.Errorf("specimens: got %v, want %v", sp, specs)
+	}
+
+	chars := want.Chars()
+	c := got.Chars()
+	if !reflect.DeepEqual(c, chars) {
+		t.Errorf("characters: got %v, want %v", c, chars)
+	}
+
+	for _, cn := range chars {
+		states := want.States(cn)
+		s := got.States(cn)
+		if !reflect.DeepEqual(s, states) {
+			t.Errorf("character %q states: got %v, want %v", cn, s, states)
+		}
+	}
+
+	fields := []matrix.Field{matrix.Reference, matrix.ImageLink, matrix.Comments}
+
+	for _, sn := range specs {
+		for _, cn := range chars {
+			obs := want.Obs(sn, cn)
+			o := got.Obs(sn, cn)
+			if !reflect.DeepEqual(o, obs) {
+				t.Errorf("observation %s-%s: got %v, want %v", sn, cn, o, obs)
+			}
+
+			for _, s := range obs {
+				for _, f := range fields {
+					val := want.Val(sn, cn, s, f)
+					v := got.Val(sn, cn, s, f)
+					if v != val {
+						t.Errorf("value %s-%s-%s [%q]: got %q, want %q", sn, cn, s, f, v, val)
+					}
+				}
+			}
+		}
+	}
 }

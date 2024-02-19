@@ -178,6 +178,112 @@ func (m *Matrix) Specimens() []string {
 	return specs
 }
 
+// Field is used to define additional information fields
+// of an observation.
+type Field string
+
+// Additional observation fields.
+const (
+	Reference Field = "reference"
+	ImageLink Field = "image"
+	Comments  Field = "comments"
+)
+
+// Set sets the value of an addition information
+// for an observation.
+func (m *Matrix) Set(spec, char, state, val string, field Field) {
+	spec = strings.Join(strings.Fields(spec), " ")
+	if spec == "" {
+		return
+	}
+	spec = strings.ToLower(spec)
+
+	sp, ok := m.specs[spec]
+	if !ok {
+		return
+	}
+
+	char = strings.Join(strings.Fields(char), " ")
+	if char == "" {
+		return
+	}
+	char = strings.ToLower(char)
+
+	obsMap, ok := sp.obs[char]
+	if !ok {
+		return
+	}
+
+	state = strings.Join(strings.Fields(state), " ")
+	if state == "" {
+		return
+	}
+	state = strings.ToLower(state)
+
+	obs, ok := obsMap[state]
+	if !ok {
+		return
+	}
+
+	val = strings.Join(strings.Fields(val), " ")
+
+	switch field {
+	case Reference:
+		obs.ref = val
+	case ImageLink:
+		obs.img = val
+	case Comments:
+		obs.comment = val
+	}
+}
+
+// Val returns the value of additional fields
+// for an observation.
+func (m *Matrix) Val(spec, char, state string, field Field) string {
+	spec = strings.Join(strings.Fields(spec), " ")
+	if spec == "" {
+		return ""
+	}
+	spec = strings.ToLower(spec)
+
+	sp, ok := m.specs[spec]
+	if !ok {
+		return ""
+	}
+
+	char = strings.Join(strings.Fields(char), " ")
+	if char == "" {
+		return ""
+	}
+	char = strings.ToLower(char)
+
+	obsMap, ok := sp.obs[char]
+	if !ok {
+		return ""
+	}
+
+	state = strings.Join(strings.Fields(state), " ")
+	if state == "" {
+		return ""
+	}
+	state = strings.ToLower(state)
+
+	obs, ok := obsMap[state]
+	if !ok {
+		return ""
+	}
+
+	switch field {
+	case Reference:
+		return obs.ref
+	case ImageLink:
+		return obs.img
+	case Comments:
+		return obs.comment
+	}
+	return ""
+}
+
 type character struct {
 	name   string
 	states map[string]bool
