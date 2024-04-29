@@ -87,6 +87,20 @@ func TestMatrix(t *testing.T) {
 	if tx := m.Taxa(); !reflect.DeepEqual(tx, taxa) {
 		t.Errorf("taxa: got %v, want %v", tx, taxa)
 	}
+	taxSpec := map[string][]string{
+		"Ascaphidae":     {"ascaphidae:kluge69"},
+		"Discoglossidae": {"discoglossidae:kluge69"},
+		"Pipidae":        {"pipidae:kluge69"},
+		"Rhinophrynidae": {"rhinophrynidae:kluge69"},
+		"Bufonidae":      {"bufonidae:kluge69"},
+		"Ranidae":        {"ranidae:kluge69"},
+	}
+	for tn, txSp := range taxSpec {
+		if sp := m.TaxSpec(tn); !reflect.DeepEqual(sp, txSp) {
+			t.Errorf("specimens of %q: got %v, want %v", tn, sp, txSp)
+		}
+
+	}
 
 	// special cases
 	m.Add("Discoglossidae", "Discoglossidae:kluge69", "tail muscle", "<na>")
@@ -217,6 +231,18 @@ func cmpMatrix(t testing.TB, got, want *matrix.Matrix) {
 					}
 				}
 			}
+		}
+	}
+
+	taxa := want.Taxa()
+	if tx := got.Taxa(); !reflect.DeepEqual(tx, taxa) {
+		t.Errorf("taxa: got %v, want %v", tx, taxa)
+	}
+
+	for _, tax := range taxa {
+		txSp := got.TaxSpec(tax)
+		if sp := got.TaxSpec(tax); !reflect.DeepEqual(sp, txSp) {
+			t.Errorf("specimens of %q: got %v, want %v", tax, sp, txSp)
 		}
 	}
 }

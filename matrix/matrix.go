@@ -21,6 +21,7 @@ const Unknown = "<unknown>"
 // a collection of taxa
 // and their character states.
 type Matrix struct {
+	taxon map[string][]string
 	chars map[string]*character
 	specs map[string]*specimen
 }
@@ -28,6 +29,7 @@ type Matrix struct {
 // New creates a new empty matrix.
 func New() *Matrix {
 	return &Matrix{
+		taxon: make(map[string][]string),
 		chars: make(map[string]*character),
 		specs: make(map[string]*specimen),
 	}
@@ -79,6 +81,8 @@ func (m *Matrix) Add(taxon, spec, char, state string) {
 			obs:   make(map[string]map[string]*observation),
 		}
 		m.specs[spec] = sp
+		txSp := m.taxon[taxon]
+		m.taxon[taxon] = append(txSp, spec)
 	}
 	if sp.taxon != taxon {
 		return
@@ -180,17 +184,27 @@ func (m *Matrix) Specimens() []string {
 
 // Taxa returns the taxa defined in the matrix.
 func (m *Matrix) Taxa() []string {
-	names := make(map[string]bool, len(m.specs))
-	for _, t := range m.specs {
-		names[t.taxon] = true
-	}
-
-	taxa := make([]string, 0, len(names))
-	for n := range names {
+	taxa := make([]string, 0, len(m.taxon))
+	for n := range m.taxon {
 		taxa = append(taxa, n)
 	}
 	slices.Sort(taxa)
 	return taxa
+}
+
+// TaxSpec returns the specimens of a given taxon.
+func (m *Matrix) TaxSpec(name string) []string {
+	name = canon(name)
+	specs := m.taxon[name]
+	if len(specs) == 0 {
+		return nil
+	}
+
+	sp := make([]string, len(specs))
+	copy(sp, specs)
+	slices.Sort(sp)
+
+	return sp
 }
 
 // Field is used to define additional information fields
