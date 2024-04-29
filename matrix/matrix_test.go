@@ -83,6 +83,10 @@ func TestMatrix(t *testing.T) {
 			t.Errorf("observation %s: got %v, want %v", name, obs, test.state)
 		}
 	}
+	taxa := []string{"Ascaphidae", "Bufonidae", "Discoglossidae", "Pipidae", "Ranidae", "Rhinophrynidae"}
+	if tx := m.Taxa(); !reflect.DeepEqual(tx, taxa) {
+		t.Errorf("taxa: got %v, want %v", tx, taxa)
+	}
 
 	// special cases
 	m.Add("Discoglossidae", "Discoglossidae:kluge69", "tail muscle", "<na>")

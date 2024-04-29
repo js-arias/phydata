@@ -178,6 +178,21 @@ func (m *Matrix) Specimens() []string {
 	return specs
 }
 
+// Taxa returns the taxa defined in the matrix.
+func (m *Matrix) Taxa() []string {
+	names := make(map[string]bool, len(m.specs))
+	for _, t := range m.specs {
+		names[t.taxon] = true
+	}
+
+	taxa := make([]string, 0, len(names))
+	for n := range names {
+		taxa = append(taxa, n)
+	}
+	slices.Sort(taxa)
+	return taxa
+}
+
 // Field is used to define additional information fields
 // of an observation.
 type Field string
