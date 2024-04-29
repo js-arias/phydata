@@ -151,9 +151,6 @@ func newMatrix() *matrix.Matrix {
 	m.Add("Ranidae", "Ranidae:kluge69", "pectoral girdle", "finnisternal")
 	m.Add("Ranidae", "Ranidae:kluge69", "scapula, relation to clavical", "juxtapose")
 
-	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "ascaphus-tail.png", matrix.ImageLink)
-	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "it might be not homologous with tail muscles of salamanders", matrix.Comments)
-
 	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "kluge1969", matrix.Reference)
 	m.Set("Ascaphidae:kluge69", "ribs, fusion", "free", "kluge1969", matrix.Reference)
 	m.Set("Ascaphidae:kluge69", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
@@ -185,6 +182,14 @@ func newMatrix() *matrix.Matrix {
 	m.Set("Ranidae:kluge69", "vertebral ossification", "holochordal", "kluge1969", matrix.Reference)
 	m.Set("Ranidae:kluge69", "pectoral girdle", "finnisternal", "kluge1969", matrix.Reference)
 	m.Set("Ranidae:kluge69", "scapula, relation to clavical", "juxtapose", "kluge1969", matrix.Reference)
+
+	return m
+}
+
+func newMatrixWithComments() *matrix.Matrix {
+	m := newMatrix()
+	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "ascaphus-tail.png", matrix.ImageLink)
+	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "it might be not homologous with tail muscles of salamanders", matrix.Comments)
 
 	return m
 }

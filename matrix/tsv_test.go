@@ -53,12 +53,12 @@ func TestReadTSV(t *testing.T) {
 		t.Fatalf("unable to read TSV data: %v", err)
 	}
 
-	want := newMatrix()
+	want := newMatrixWithComments()
 	cmpMatrix(t, m, want)
 }
 
 func TestWriteTSV(t *testing.T) {
-	m := newMatrix()
+	m := newMatrixWithComments()
 	var w bytes.Buffer
 	if err := m.TSV(&w); err != nil {
 		t.Fatalf("unable to write TSV data: %v", err)
