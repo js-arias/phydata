@@ -369,14 +369,25 @@ func readToken(r *bufio.Reader, token *strings.Builder) (delim rune, err error) 
 	}
 	if r1 == '\'' || r1 == '"' {
 		// quoted block
+		stop := r1
 		for {
 			r1, _, err := r.ReadRune()
 			if err != nil {
 				return 0, err
 			}
-			if r1 == '\'' || r1 == '"' {
-				delim = ' '
-				break
+			if r1 == stop {
+				nx, _, err := r.ReadRune()
+				if err != nil {
+					return 0, err
+				}
+				if nx != stop {
+					r.UnreadRune()
+					delim = ' '
+					break
+				}
+				if stop == '\'' {
+					continue
+				}
 			}
 			token.WriteRune(r1)
 		}
