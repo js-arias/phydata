@@ -18,7 +18,7 @@ BEGIN TAXA;
  	TITLE Taxa;
 	DIMENSIONS NTAX=6;
 	TAXLABELS
-		Ascaphidae
+		Ascaphus_truei
 		Bufonidae
 		Discoglossidae
 		Pipidae
@@ -38,7 +38,7 @@ BEGIN CHARACTERS;
 		4 'tail_muscle' / 'absent' 'present',
 		5 'vertebral_ossification' / 'ectochordal' 'holochordal' 'stegochordal' ;
 	MATRIX
-	Ascaphidae	00110
+	Ascaphus_truei	00110
 	Bufonidae	01001
 	Discoglossidae	00102
 	Pipidae	{01}2102

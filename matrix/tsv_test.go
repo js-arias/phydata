@@ -14,11 +14,11 @@ import (
 
 var obsText = `# character observations
 taxon	specimen	character	state	reference	image	comments
-Ascaphidae	kluge1969:ascaphidae	tail muscle	present	kluge1969	ascaphus-tail.png	it might be not homologous with tail muscles of salamanders
-Ascaphidae	kluge1969:ascaphidae	ribs, fusion	free	kluge1969		
-Ascaphidae	kluge1969:ascaphidae	vertebral ossification	ectochordal	kluge1969		
-Ascaphidae	kluge1969:ascaphidae	pectoral girdle	arciferal	kluge1969		
-Ascaphidae	kluge1969:ascaphidae	scapula, relation to clavical	overlap	kluge1969		
+Ascaphus truei	kluge1969:ascaphus_truei	tail muscle	present	kluge1969	ascaphus-tail.png	it might be not homologous with tail muscles of salamanders
+Ascaphus truei	kluge1969:ascaphus_truei	ribs, fusion	free	kluge1969		
+Ascaphus truei	kluge1969:ascaphus_truei	vertebral ossification	ectochordal	kluge1969		
+Ascaphus truei	kluge1969:ascaphus_truei	pectoral girdle	arciferal	kluge1969		
+Ascaphus truei	kluge1969:ascaphus_truei	scapula, relation to clavical	overlap	kluge1969		
 Discoglossidae	kluge1969:discoglossidae	tail muscle	absent	kluge1969		
 Discoglossidae	kluge1969:discoglossidae	ribs, fusion	free	kluge1969		
 Discoglossidae	kluge1969:discoglossidae	vertebral ossification	stegochordal	kluge1969		

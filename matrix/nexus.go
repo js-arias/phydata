@@ -239,7 +239,7 @@ func (m *Matrix) readNexusMatrix(r *bufio.Reader, token *strings.Builder, ref st
 		tax := strings.ReplaceAll(token.String(), "_", " ")
 		tax = strings.Join(strings.Fields(tax), " ")
 		tax = canon(tax)
-		spec := ref + ":" + tax
+		spec := specID(ref + ":" + tax)
 
 		// read characters
 		char := 0

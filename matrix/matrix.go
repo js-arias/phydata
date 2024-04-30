@@ -45,11 +45,7 @@ func (m *Matrix) Add(taxon, spec, char, state string) {
 		return
 	}
 
-	spec = strings.Join(strings.Fields(spec), " ")
-	if spec == "" {
-		return
-	}
-	spec = strings.ToLower(spec)
+	spec = specID(spec)
 
 	char = strings.Join(strings.Fields(char), " ")
 	if char == "" {
@@ -119,11 +115,7 @@ func (m *Matrix) Chars() []string {
 // Obs returns the states assigned for character
 // in a specimen.
 func (m *Matrix) Obs(spec, char string) []string {
-	spec = strings.Join(strings.Fields(spec), " ")
-	if spec == "" {
-		return nil
-	}
-	spec = strings.ToLower(spec)
+	spec = specID(spec)
 
 	sp, ok := m.specs[spec]
 	if !ok {
@@ -221,11 +213,7 @@ const (
 // Set sets the value of an addition information
 // for an observation.
 func (m *Matrix) Set(spec, char, state, val string, field Field) {
-	spec = strings.Join(strings.Fields(spec), " ")
-	if spec == "" {
-		return
-	}
-	spec = strings.ToLower(spec)
+	spec = specID(spec)
 
 	sp, ok := m.specs[spec]
 	if !ok {
@@ -269,11 +257,7 @@ func (m *Matrix) Set(spec, char, state, val string, field Field) {
 // Val returns the value of additional fields
 // for an observation.
 func (m *Matrix) Val(spec, char, state string, field Field) string {
-	spec = strings.Join(strings.Fields(spec), " ")
-	if spec == "" {
-		return ""
-	}
-	spec = strings.ToLower(spec)
+	spec = specID(spec)
 
 	sp, ok := m.specs[spec]
 	if !ok {
@@ -351,4 +335,12 @@ func canon(name string) string {
 	name = strings.ToLower(name)
 	r, n := utf8.DecodeRuneInString(name)
 	return string(unicode.ToUpper(r)) + name[n:]
+}
+
+func specID(spec string) string {
+	spec = strings.Join(strings.Fields(spec), "_")
+	if spec == "" {
+		return ""
+	}
+	return strings.ToLower(spec)
 }

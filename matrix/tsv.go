@@ -46,12 +46,12 @@ var valFields = []Field{
 //
 //	# character observations
 //	taxon	specimen	character	state	reference	image	comments
-//	Ascaphidae	ascaphidae:kluge69	tail muscle	present	kluge1969
-//	Ascaphidae	ascaphidae:kluge69	ribs, fusion	free	kluge1969
-//	Discoglossidae	discoglossidae:kluge69	tail muscle	absent	kluge1969
-//	Discoglossidae	discoglossidae:kluge69	ribs, fusion	free	kluge1969
-//	Pipidae	pipidae:kluge69	tail muscle	absent	kluge1969
-//	Pipidae	pipidae:kluge69	ribs, fusion	fused in adults	kluge1969
+//	Ascaphus truei	kluge1969:ascaphus_truei	tail muscle	present	kluge1969	ascaphus-tail.png	it might be not homologous with tail muscles of salamanders
+//	Ascaphus truei	kluge1969:ascaphus_truei	ribs, fusion	free	kluge1969
+//	Discoglossidae	kluge1969:discoglossidae	tail muscle	absent	kluge1969
+//	Discoglossidae	kluge1969:discoglossidae	ribs, fusion	free	kluge1969
+//	Pipidae	kluge1969:pipidae	tail muscle	absent	kluge1969
+//	Pipidae	kluge1969:pipidae	ribs, fusion	fused in adults	kluge1969
 func (m *Matrix) ReadTSV(r io.Reader) error {
 	tab := csv.NewReader(r)
 	tab.Comma = '\t'

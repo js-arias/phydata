@@ -14,7 +14,7 @@ import (
 func TestMatrix(t *testing.T) {
 	m := newMatrix()
 
-	specs := []string{"kluge1969:ascaphidae", "kluge1969:bufonidae", "kluge1969:discoglossidae", "kluge1969:pipidae", "kluge1969:ranidae", "kluge1969:rhinophrynidae"}
+	specs := []string{"kluge1969:ascaphus_truei", "kluge1969:bufonidae", "kluge1969:discoglossidae", "kluge1969:pipidae", "kluge1969:ranidae", "kluge1969:rhinophrynidae"}
 	msp := m.Specimens()
 	if !reflect.DeepEqual(msp, specs) {
 		t.Errorf("specimens: got %v, want %v", msp, specs)
@@ -51,7 +51,7 @@ func TestMatrix(t *testing.T) {
 			state: []string{"holochordal"},
 		},
 		"Ascaphidae:ribs": {
-			spec:  "kluge1969:Ascaphidae",
+			spec:  "kluge1969:Ascaphus truei",
 			char:  "tail muscle",
 			state: []string{"present"},
 		},
@@ -83,12 +83,12 @@ func TestMatrix(t *testing.T) {
 			t.Errorf("observation %s: got %v, want %v", name, obs, test.state)
 		}
 	}
-	taxa := []string{"Ascaphidae", "Bufonidae", "Discoglossidae", "Pipidae", "Ranidae", "Rhinophrynidae"}
+	taxa := []string{"Ascaphus truei", "Bufonidae", "Discoglossidae", "Pipidae", "Ranidae", "Rhinophrynidae"}
 	if tx := m.Taxa(); !reflect.DeepEqual(tx, taxa) {
 		t.Errorf("taxa: got %v, want %v", tx, taxa)
 	}
 	taxSpec := map[string][]string{
-		"Ascaphidae":     {"kluge1969:ascaphidae"},
+		"Ascaphus truei": {"kluge1969:ascaphus_truei"},
 		"Discoglossidae": {"kluge1969:discoglossidae"},
 		"Pipidae":        {"kluge1969:pipidae"},
 		"Rhinophrynidae": {"kluge1969:rhinophrynidae"},
@@ -119,11 +119,11 @@ func TestMatrix(t *testing.T) {
 func newMatrix() *matrix.Matrix {
 	m := matrix.New()
 
-	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "tail muscle", "present")
-	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "ribs, fusion", "free")
-	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "vertebral ossification", "ectochordal")
-	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "pectoral girdle", "arciferal")
-	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "scapula, relation to clavical", "overlap")
+	m.Add("Ascaphus truei", "kluge1969:Ascaphus truei", "tail muscle", "present")
+	m.Add("Ascaphus truei", "kluge1969:Ascaphus truei", "ribs, fusion", "free")
+	m.Add("Ascaphus truei", "kluge1969:Ascaphus truei", "vertebral ossification", "ectochordal")
+	m.Add("Ascaphus truei", "kluge1969:Ascaphus truei", "pectoral girdle", "arciferal")
+	m.Add("Ascaphus truei", "kluge1969:Ascaphus truei", "scapula, relation to clavical", "overlap")
 	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "tail muscle", "absent")
 	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "ribs, fusion", "free")
 	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "vertebral ossification", "stegochordal")
@@ -151,11 +151,11 @@ func newMatrix() *matrix.Matrix {
 	m.Add("Ranidae", "kluge1969:Ranidae", "pectoral girdle", "finnisternal")
 	m.Add("Ranidae", "kluge1969:Ranidae", "scapula, relation to clavical", "juxtapose")
 
-	m.Set("kluge1969:Ascaphidae", "tail muscle", "present", "kluge1969", matrix.Reference)
-	m.Set("kluge1969:Ascaphidae", "ribs, fusion", "free", "kluge1969", matrix.Reference)
-	m.Set("kluge1969:Ascaphidae", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
-	m.Set("kluge1969:Ascaphidae", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
-	m.Set("kluge1969:Ascaphidae", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphus truei", "tail muscle", "present", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphus truei", "ribs, fusion", "free", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphus truei", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphus truei", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphus truei", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
 	m.Set("kluge1969:Discoglossidae", "tail muscle", "absent", "kluge1969", matrix.Reference)
 	m.Set("kluge1969:Discoglossidae", "ribs, fusion", "free", "kluge1969", matrix.Reference)
 	m.Set("kluge1969:Discoglossidae", "vertebral ossification", "stegochordal", "kluge1969", matrix.Reference)
@@ -188,8 +188,8 @@ func newMatrix() *matrix.Matrix {
 
 func newMatrixWithComments() *matrix.Matrix {
 	m := newMatrix()
-	m.Set("kluge1969:Ascaphidae", "tail muscle", "present", "ascaphus-tail.png", matrix.ImageLink)
-	m.Set("kluge1969:Ascaphidae", "tail muscle", "present", "it might be not homologous with tail muscles of salamanders", matrix.Comments)
+	m.Set("kluge1969:Ascaphus truei", "tail muscle", "present", "ascaphus-tail.png", matrix.ImageLink)
+	m.Set("kluge1969:Ascaphus truei", "tail muscle", "present", "it might be not homologous with tail muscles of salamanders", matrix.Comments)
 
 	return m
 }
