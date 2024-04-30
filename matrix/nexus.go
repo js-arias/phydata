@@ -17,7 +17,7 @@ import (
 // ReadNexus reads a character matrix from a NEXUS file.
 // It require an ID for the matrix,
 // and a ID for a bibliographic reference.
-func (m *Matrix) ReadNexus(r io.Reader, name, ref string) error {
+func (m *Matrix) ReadNexus(r io.Reader, ref string) error {
 	nxf := bufio.NewReader(r)
 	token := &strings.Builder{}
 
@@ -69,7 +69,7 @@ func (m *Matrix) ReadNexus(r io.Reader, name, ref string) error {
 			continue
 		}
 		if t == "matrix" {
-			if err := m.readNexusMatrix(nxf, token, name, ref, chars); err != nil {
+			if err := m.readNexusMatrix(nxf, token, ref, chars); err != nil {
 				return err
 			}
 			continue
@@ -229,7 +229,7 @@ func readNexusCharLabels(r *bufio.Reader, token *strings.Builder) ([]nexusChar, 
 	return chars, nil
 }
 
-func (m *Matrix) readNexusMatrix(r *bufio.Reader, token *strings.Builder, name, ref string, chars []nexusChar) error {
+func (m *Matrix) readNexusMatrix(r *bufio.Reader, token *strings.Builder, ref string, chars []nexusChar) error {
 	last := ""
 	for {
 		// read taxon name
@@ -239,7 +239,7 @@ func (m *Matrix) readNexusMatrix(r *bufio.Reader, token *strings.Builder, name, 
 		tax := strings.ReplaceAll(token.String(), "_", " ")
 		tax = strings.Join(strings.Fields(tax), " ")
 		tax = canon(tax)
-		spec := tax + ":" + name
+		spec := ref + ":" + tax
 
 		// read characters
 		char := 0

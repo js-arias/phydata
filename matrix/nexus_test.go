@@ -50,7 +50,7 @@ END;
 
 func TestReadNexus(t *testing.T) {
 	m := matrix.New()
-	if err := m.ReadNexus(strings.NewReader(nexusMatrix), "kluge69", "kluge1969"); err != nil {
+	if err := m.ReadNexus(strings.NewReader(nexusMatrix), "kluge1969"); err != nil {
 		t.Fatalf("unable to read NEXUS data: %v", err)
 	}
 
@@ -67,7 +67,7 @@ func TestWriteNexus(t *testing.T) {
 	t.Logf("output:\n%s\n", w.String())
 
 	got := matrix.New()
-	if err := got.ReadNexus(&w, "kluge69", "kluge1969"); err != nil {
+	if err := got.ReadNexus(&w, "kluge1969"); err != nil {
 		t.Fatalf("unable to read NEXUS data: %v", err)
 	}
 

@@ -14,7 +14,7 @@ import (
 func TestMatrix(t *testing.T) {
 	m := newMatrix()
 
-	specs := []string{"ascaphidae:kluge69", "bufonidae:kluge69", "discoglossidae:kluge69", "pipidae:kluge69", "ranidae:kluge69", "rhinophrynidae:kluge69"}
+	specs := []string{"kluge1969:ascaphidae", "kluge1969:bufonidae", "kluge1969:discoglossidae", "kluge1969:pipidae", "kluge1969:ranidae", "kluge1969:rhinophrynidae"}
 	msp := m.Specimens()
 	if !reflect.DeepEqual(msp, specs) {
 		t.Errorf("specimens: got %v, want %v", msp, specs)
@@ -46,32 +46,32 @@ func TestMatrix(t *testing.T) {
 		state []string
 	}{
 		"Ranidae:ossification": {
-			spec:  "Ranidae:kluge69",
+			spec:  "kluge1969:Ranidae",
 			char:  "vertebral ossification",
 			state: []string{"holochordal"},
 		},
 		"Ascaphidae:ribs": {
-			spec:  "Ascaphidae:kluge69",
+			spec:  "kluge1969:Ascaphidae",
 			char:  "tail muscle",
 			state: []string{"present"},
 		},
 		"polymorphic": {
-			spec:  "Pipidae:kluge69",
+			spec:  "kluge1969:Pipidae",
 			char:  "pectoral girdle",
 			state: []string{"arciferal", "finnisternal"},
 		},
 		"not applicable": {
-			spec:  "Rhinophrynidae:kluge69",
+			spec:  "kluge1969:Rhinophrynidae",
 			char:  "ribs, fusion",
 			state: []string{"<na>"},
 		},
 		"unknown, unassigned taxon": {
-			spec:  "Hylidae:kluge69",
+			spec:  "kluge1969:Hylidae",
 			char:  "ribs, fusion",
 			state: []string{"<unknown>"},
 		},
 		"unknown, unassigned character": {
-			spec:  "Bufonidae:kluge69",
+			spec:  "kluge1969:Bufonidae",
 			char:  "spiracle",
 			state: []string{"<unknown>"},
 		},
@@ -88,12 +88,12 @@ func TestMatrix(t *testing.T) {
 		t.Errorf("taxa: got %v, want %v", tx, taxa)
 	}
 	taxSpec := map[string][]string{
-		"Ascaphidae":     {"ascaphidae:kluge69"},
-		"Discoglossidae": {"discoglossidae:kluge69"},
-		"Pipidae":        {"pipidae:kluge69"},
-		"Rhinophrynidae": {"rhinophrynidae:kluge69"},
-		"Bufonidae":      {"bufonidae:kluge69"},
-		"Ranidae":        {"ranidae:kluge69"},
+		"Ascaphidae":     {"kluge1969:ascaphidae"},
+		"Discoglossidae": {"kluge1969:discoglossidae"},
+		"Pipidae":        {"kluge1969:pipidae"},
+		"Rhinophrynidae": {"kluge1969:rhinophrynidae"},
+		"Bufonidae":      {"kluge1969:bufonidae"},
+		"Ranidae":        {"kluge1969:ranidae"},
 	}
 	for tn, txSp := range taxSpec {
 		if sp := m.TaxSpec(tn); !reflect.DeepEqual(sp, txSp) {
@@ -103,14 +103,14 @@ func TestMatrix(t *testing.T) {
 	}
 
 	// special cases
-	m.Add("Discoglossidae", "Discoglossidae:kluge69", "tail muscle", "<na>")
-	obs := m.Obs("Discoglossidae:kluge69", "tail muscle")
+	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "tail muscle", "<na>")
+	obs := m.Obs("kluge1969:Discoglossidae", "tail muscle")
 	if !reflect.DeepEqual(obs, []string{"<na>"}) {
 		t.Errorf("adding <na>: got %v, want %v", obs, []string{"<na>"})
 	}
 
-	m.Add("Discoglossidae", "Discoglossidae:kluge69", "tail muscle", "absent")
-	obs = m.Obs("Discoglossidae:kluge69", "tail muscle")
+	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "tail muscle", "absent")
+	obs = m.Obs("kluge1969:Discoglossidae", "tail muscle")
 	if !reflect.DeepEqual(obs, []string{"absent"}) {
 		t.Errorf("remove <na>: got %v, want %v", obs, []string{"absent"})
 	}
@@ -119,77 +119,77 @@ func TestMatrix(t *testing.T) {
 func newMatrix() *matrix.Matrix {
 	m := matrix.New()
 
-	m.Add("Ascaphidae", "Ascaphidae:kluge69", "tail muscle", "present")
-	m.Add("Ascaphidae", "Ascaphidae:kluge69", "ribs, fusion", "free")
-	m.Add("Ascaphidae", "Ascaphidae:kluge69", "vertebral ossification", "ectochordal")
-	m.Add("Ascaphidae", "Ascaphidae:kluge69", "pectoral girdle", "arciferal")
-	m.Add("Ascaphidae", "Ascaphidae:kluge69", "scapula, relation to clavical", "overlap")
-	m.Add("Discoglossidae", "Discoglossidae:kluge69", "tail muscle", "absent")
-	m.Add("Discoglossidae", "Discoglossidae:kluge69", "ribs, fusion", "free")
-	m.Add("Discoglossidae", "Discoglossidae:kluge69", "vertebral ossification", "stegochordal")
-	m.Add("Discoglossidae", "Discoglossidae:kluge69", "pectoral girdle", "arciferal")
-	m.Add("Discoglossidae", "Discoglossidae:kluge69", "scapula, relation to clavical", "overlap")
-	m.Add("Pipidae", "Pipidae:kluge69", "tail muscle", "absent")
-	m.Add("Pipidae", "Pipidae:kluge69", "ribs, fusion", "fused in adults")
-	m.Add("Pipidae", "Pipidae:kluge69", "vertebral ossification", "stegochordal")
-	m.Add("Pipidae", "Pipidae:kluge69", "pectoral girdle", "arciferal")
-	m.Add("Pipidae", "Pipidae:kluge69", "pectoral girdle", "finnisternal")
-	m.Add("Pipidae", "Pipidae:kluge69", "scapula, relation to clavical", "overlap")
-	m.Add("Rhinophrynidae", "Rhinophrynidae:kluge69", "tail muscle", "absent")
-	m.Add("Rhinophrynidae", "Rhinophrynidae:kluge69", "ribs, fusion", "<NA>")
-	m.Add("Rhinophrynidae", "Rhinophrynidae:kluge69", "vertebral ossification", "ectochordal")
-	m.Add("Rhinophrynidae", "Rhinophrynidae:kluge69", "pectoral girdle", "arciferal")
-	m.Add("Rhinophrynidae", "Rhinophrynidae:kluge69", "scapula, relation to clavical", "overlap")
-	m.Add("Bufonidae", "Bufonidae:kluge69", "tail muscle", "absent")
-	m.Add("Bufonidae", "Bufonidae:kluge69", "ribs, fusion", "fused")
-	m.Add("Bufonidae", "Bufonidae:kluge69", "vertebral ossification", "holochordal")
-	m.Add("Bufonidae", "Bufonidae:kluge69", "pectoral girdle", "arciferal")
-	m.Add("Bufonidae", "Bufonidae:kluge69", "scapula, relation to clavical", "juxtapose")
-	m.Add("Ranidae", "Ranidae:kluge69", "tail muscle", "absent")
-	m.Add("Ranidae", "Ranidae:kluge69", "ribs, fusion", "fused")
-	m.Add("Ranidae", "Ranidae:kluge69", "vertebral ossification", "holochordal")
-	m.Add("Ranidae", "Ranidae:kluge69", "pectoral girdle", "finnisternal")
-	m.Add("Ranidae", "Ranidae:kluge69", "scapula, relation to clavical", "juxtapose")
+	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "tail muscle", "present")
+	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "ribs, fusion", "free")
+	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "vertebral ossification", "ectochordal")
+	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "pectoral girdle", "arciferal")
+	m.Add("Ascaphidae", "kluge1969:Ascaphidae", "scapula, relation to clavical", "overlap")
+	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "tail muscle", "absent")
+	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "ribs, fusion", "free")
+	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "vertebral ossification", "stegochordal")
+	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "pectoral girdle", "arciferal")
+	m.Add("Discoglossidae", "kluge1969:Discoglossidae", "scapula, relation to clavical", "overlap")
+	m.Add("Pipidae", "kluge1969:Pipidae", "tail muscle", "absent")
+	m.Add("Pipidae", "kluge1969:Pipidae", "ribs, fusion", "fused in adults")
+	m.Add("Pipidae", "kluge1969:Pipidae", "vertebral ossification", "stegochordal")
+	m.Add("Pipidae", "kluge1969:Pipidae", "pectoral girdle", "arciferal")
+	m.Add("Pipidae", "kluge1969:Pipidae", "pectoral girdle", "finnisternal")
+	m.Add("Pipidae", "kluge1969:Pipidae", "scapula, relation to clavical", "overlap")
+	m.Add("Rhinophrynidae", "kluge1969:Rhinophrynidae", "tail muscle", "absent")
+	m.Add("Rhinophrynidae", "kluge1969:Rhinophrynidae", "ribs, fusion", "<NA>")
+	m.Add("Rhinophrynidae", "kluge1969:Rhinophrynidae", "vertebral ossification", "ectochordal")
+	m.Add("Rhinophrynidae", "kluge1969:Rhinophrynidae", "pectoral girdle", "arciferal")
+	m.Add("Rhinophrynidae", "kluge1969:Rhinophrynidae", "scapula, relation to clavical", "overlap")
+	m.Add("Bufonidae", "kluge1969:Bufonidae", "tail muscle", "absent")
+	m.Add("Bufonidae", "kluge1969:Bufonidae", "ribs, fusion", "fused")
+	m.Add("Bufonidae", "kluge1969:Bufonidae", "vertebral ossification", "holochordal")
+	m.Add("Bufonidae", "kluge1969:Bufonidae", "pectoral girdle", "arciferal")
+	m.Add("Bufonidae", "kluge1969:Bufonidae", "scapula, relation to clavical", "juxtapose")
+	m.Add("Ranidae", "kluge1969:Ranidae", "tail muscle", "absent")
+	m.Add("Ranidae", "kluge1969:Ranidae", "ribs, fusion", "fused")
+	m.Add("Ranidae", "kluge1969:Ranidae", "vertebral ossification", "holochordal")
+	m.Add("Ranidae", "kluge1969:Ranidae", "pectoral girdle", "finnisternal")
+	m.Add("Ranidae", "kluge1969:Ranidae", "scapula, relation to clavical", "juxtapose")
 
-	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "kluge1969", matrix.Reference)
-	m.Set("Ascaphidae:kluge69", "ribs, fusion", "free", "kluge1969", matrix.Reference)
-	m.Set("Ascaphidae:kluge69", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
-	m.Set("Ascaphidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
-	m.Set("Ascaphidae:kluge69", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
-	m.Set("Discoglossidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
-	m.Set("Discoglossidae:kluge69", "ribs, fusion", "free", "kluge1969", matrix.Reference)
-	m.Set("Discoglossidae:kluge69", "vertebral ossification", "stegochordal", "kluge1969", matrix.Reference)
-	m.Set("Discoglossidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
-	m.Set("Discoglossidae:kluge69", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
-	m.Set("Pipidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
-	m.Set("Pipidae:kluge69", "ribs, fusion", "fused in adults", "kluge1969", matrix.Reference)
-	m.Set("Pipidae:kluge69", "vertebral ossification", "stegochordal", "kluge1969", matrix.Reference)
-	m.Set("Pipidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
-	m.Set("Pipidae:kluge69", "pectoral girdle", "finnisternal", "kluge1969", matrix.Reference)
-	m.Set("Pipidae:kluge69", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
-	m.Set("Rhinophrynidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
-	m.Set("Rhinophrynidae:kluge69", "ribs, fusion", "<NA>", "kluge1969", matrix.Reference)
-	m.Set("Rhinophrynidae:kluge69", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
-	m.Set("Rhinophrynidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
-	m.Set("Rhinophrynidae:kluge69", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
-	m.Set("Bufonidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
-	m.Set("Bufonidae:kluge69", "ribs, fusion", "fused", "kluge1969", matrix.Reference)
-	m.Set("Bufonidae:kluge69", "vertebral ossification", "holochordal", "kluge1969", matrix.Reference)
-	m.Set("Bufonidae:kluge69", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
-	m.Set("Bufonidae:kluge69", "scapula, relation to clavical", "juxtapose", "kluge1969", matrix.Reference)
-	m.Set("Ranidae:kluge69", "tail muscle", "absent", "kluge1969", matrix.Reference)
-	m.Set("Ranidae:kluge69", "ribs, fusion", "fused", "kluge1969", matrix.Reference)
-	m.Set("Ranidae:kluge69", "vertebral ossification", "holochordal", "kluge1969", matrix.Reference)
-	m.Set("Ranidae:kluge69", "pectoral girdle", "finnisternal", "kluge1969", matrix.Reference)
-	m.Set("Ranidae:kluge69", "scapula, relation to clavical", "juxtapose", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphidae", "tail muscle", "present", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphidae", "ribs, fusion", "free", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphidae", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphidae", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ascaphidae", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Discoglossidae", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Discoglossidae", "ribs, fusion", "free", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Discoglossidae", "vertebral ossification", "stegochordal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Discoglossidae", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Discoglossidae", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Pipidae", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Pipidae", "ribs, fusion", "fused in adults", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Pipidae", "vertebral ossification", "stegochordal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Pipidae", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Pipidae", "pectoral girdle", "finnisternal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Pipidae", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Rhinophrynidae", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Rhinophrynidae", "ribs, fusion", "<NA>", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Rhinophrynidae", "vertebral ossification", "ectochordal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Rhinophrynidae", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Rhinophrynidae", "scapula, relation to clavical", "overlap", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Bufonidae", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Bufonidae", "ribs, fusion", "fused", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Bufonidae", "vertebral ossification", "holochordal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Bufonidae", "pectoral girdle", "arciferal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Bufonidae", "scapula, relation to clavical", "juxtapose", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ranidae", "tail muscle", "absent", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ranidae", "ribs, fusion", "fused", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ranidae", "vertebral ossification", "holochordal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ranidae", "pectoral girdle", "finnisternal", "kluge1969", matrix.Reference)
+	m.Set("kluge1969:Ranidae", "scapula, relation to clavical", "juxtapose", "kluge1969", matrix.Reference)
 
 	return m
 }
 
 func newMatrixWithComments() *matrix.Matrix {
 	m := newMatrix()
-	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "ascaphus-tail.png", matrix.ImageLink)
-	m.Set("Ascaphidae:kluge69", "tail muscle", "present", "it might be not homologous with tail muscles of salamanders", matrix.Comments)
+	m.Set("kluge1969:Ascaphidae", "tail muscle", "present", "ascaphus-tail.png", matrix.ImageLink)
+	m.Set("kluge1969:Ascaphidae", "tail muscle", "present", "it might be not homologous with tail muscles of salamanders", matrix.Comments)
 
 	return m
 }
