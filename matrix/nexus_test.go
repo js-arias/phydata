@@ -26,7 +26,7 @@ BEGIN TAXA;
 		Ranidae
 		Rhinophrynidae
 	;
-END;
+ENDBLOCK;
 
 BEGIN CHARACTERS;
 	TITLE 'Phylogenetic data matrix';

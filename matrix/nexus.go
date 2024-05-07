@@ -57,7 +57,7 @@ func (m *Matrix) ReadNexus(r io.Reader, ref string) error {
 			return fmt.Errorf("incomplete block 'characters': %v", err)
 		}
 		t := strings.ToLower(token.String())
-		if t == "end" {
+		if t == "end" || t == "endblock" {
 			break
 		}
 		if t == "charstatelabels" {
@@ -265,7 +265,8 @@ func (m *Matrix) readNexusMatrix(r *bufio.Reader, token *strings.Builder, ref st
 				c = chars[char]
 				cName = c.name
 			}
-			if r1 == '\n' {
+
+			if r1 == '\n' || r1 == '\r' {
 				break
 			}
 			if unicode.IsSpace(r1) {
@@ -346,7 +347,8 @@ func (m *Matrix) readNexusMatrix(r *bufio.Reader, token *strings.Builder, ref st
 func skipBlock(r *bufio.Reader, token *strings.Builder) error {
 	for {
 		_, err := readToken(r, token)
-		if t := strings.ToLower(token.String()); t == "end" {
+		t := strings.ToLower(token.String())
+		if t == "end" || t == "endblock" {
 			return nil
 		}
 		if err != nil {
