@@ -62,8 +62,22 @@ func (m *Matrix) ReadNexus(r io.Reader, ref string) error {
 		}
 		if t == "charstatelabels" {
 			var err error
+			chars, err = readNexusCharStateLabels(nxf, token)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+		if t == "charlabels" {
+			var err error
 			chars, err = readNexusCharLabels(nxf, token)
 			if err != nil {
+				return err
+			}
+			continue
+		}
+		if t == "statelabels" {
+			if err := readNexusStateLabels(nxf, token, chars); err != nil {
 				return err
 			}
 			continue
@@ -175,7 +189,7 @@ type nexusChar struct {
 	states []string
 }
 
-func readNexusCharLabels(r *bufio.Reader, token *strings.Builder) ([]nexusChar, error) {
+func readNexusCharStateLabels(r *bufio.Reader, token *strings.Builder) ([]nexusChar, error) {
 	var chars []nexusChar
 	for i := 0; ; i++ {
 		// read character number
@@ -201,8 +215,7 @@ func readNexusCharLabels(r *bufio.Reader, token *strings.Builder) ([]nexusChar, 
 
 		if delim == ',' || delim == ';' {
 			chars = append(chars, nexusChar{
-				name:   cName,
-				states: nil,
+				name: cName,
 			})
 			if delim == ';' {
 				break
@@ -238,6 +251,72 @@ func readNexusCharLabels(r *bufio.Reader, token *strings.Builder) ([]nexusChar, 
 		}
 	}
 	return chars, nil
+}
+
+func readNexusCharLabels(r *bufio.Reader, token *strings.Builder) ([]nexusChar, error) {
+	var chars []nexusChar
+	for i := 0; ; i++ {
+		// read character name
+		delim, err := readToken(r, token)
+		if err != nil {
+			return nil, fmt.Errorf("while reading char labels: char %d [%q]: %v", i+1, token.String(), err)
+		}
+		cName := strings.ReplaceAll(token.String(), "_", " ")
+		cName = strings.Join(strings.Fields(cName), " ")
+
+		chars = append(chars, nexusChar{
+			name: cName,
+		})
+
+		if delim == ';' {
+			break
+		}
+	}
+	return chars, nil
+}
+
+func readNexusStateLabels(r *bufio.Reader, token *strings.Builder, chars []nexusChar) error {
+	for i := 0; ; i++ {
+		// read character number
+		delim, err := readToken(r, token)
+		if err != nil {
+			return fmt.Errorf("while reading state labels: %v, last character read: %d", err, i)
+		}
+		if t := token.String(); t == "" && delim == ';' {
+			break
+		}
+
+		id, err := strconv.Atoi(token.String())
+		if err != nil {
+			return fmt.Errorf("while reading state labels: char %d [%q]: %v", i+1, token.String(), err)
+		}
+		if id != i+1 {
+			return fmt.Errorf("while reading state labels: char %d [%q]: expecting %d", i+1, token.String(), i+1)
+		}
+
+		// read state names
+		var states []string
+		for {
+			delim, err = readToken(r, token)
+			if err != nil {
+				return fmt.Errorf("while reading char state labels: char %d [%q]: %v", i+1, token.String(), err)
+			}
+			sName := strings.ReplaceAll(token.String(), "_", " ")
+			sName = strings.Join(strings.Fields(sName), " ")
+			states = append(states, sName)
+			if delim == ',' || delim == ';' {
+				break
+			}
+		}
+		if i < len(chars) {
+			chars[i].states = states
+		}
+
+		if delim == ';' {
+			break
+		}
+	}
+	return nil
 }
 
 func (m *Matrix) readNexusMatrix(r *bufio.Reader, token *strings.Builder, ref string, chars []nexusChar) error {

@@ -26,7 +26,7 @@ BEGIN TAXA;
 		Ranidae
 		Rhinophrynidae
 	;
-ENDBLOCK;
+END;
 
 BEGIN CHARACTERS;
 	TITLE 'Phylogenetic data matrix';
@@ -136,4 +136,70 @@ func TestReadNexusNoStateLabels(t *testing.T) {
 			t.Errorf("character %q states: got %v, want %v", c, states, s)
 		}
 	}
+}
+
+var nexusMatrixOldSchool = `#NEXUS
+
+BEGIN TAXA;
+ 	TITLE Taxa;
+	DIMENSIONS NTAX=6;
+	TAXLABELS
+		Ascaphus_truei
+		Bufonidae
+		Discoglossidae
+		Pipidae
+		Ranidae
+		Rhinophrynidae
+	;
+ENDBLOCK;
+
+BEGIN CHARACTERS;
+	TITLE 'Phylogenetic data matrix';
+	DIMENSIONS NCHAR=5;
+	FORMAT DATATYPE = STANDARD RESPECTCASE GAP = - MISSING = ? SYMBOLS = "0 1 2 3 4 5 6 7 8 9 A B C D E F";
+	CHARLABELS
+		[1] 'pectoral_girdle'
+		[2] 'ribs,_fusion'
+		[3] 'scapula, relation to clavical'
+		[4] 'tail_muscle'
+		[5] 'vertebral_ossification'
+		;
+	STATELABELS
+		1
+			'arciferal'
+			'finnisternal',
+		2
+			'free'
+			'fused'
+			'fused_in_adults',
+		3
+			'juxtapose'
+			'overlap',
+		4
+			'absent'
+			'present',
+		5
+			'ectochordal'
+			'holochordal'
+			'stegochordal',
+		;
+	MATRIX
+	Ascaphus_truei	00110
+	Bufonidae	01001
+	Discoglossidae	00102
+	Pipidae	{01}2102
+	Ranidae	11001
+	Rhinophrynidae	0-100
+	;
+ENDBLOCK;
+`
+
+func TestReadNexusOldSchool(t *testing.T) {
+	m := matrix.New()
+	if err := m.ReadNexus(strings.NewReader(nexusMatrixOldSchool), "kluge1969"); err != nil {
+		t.Fatalf("unable to read NEXUS data: %v", err)
+	}
+
+	want := newMatrix()
+	cmpMatrix(t, m, want)
 }
