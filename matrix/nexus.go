@@ -196,11 +196,22 @@ func readNexusCharLabels(r *bufio.Reader, token *strings.Builder) ([]nexusChar, 
 		if err != nil {
 			return nil, fmt.Errorf("while reading char state labels: char %d [%q]: %v", i+1, token.String(), err)
 		}
+		cName := strings.ReplaceAll(token.String(), "_", " ")
+		cName = strings.Join(strings.Fields(cName), " ")
+
+		if delim == ',' || delim == ';' {
+			chars = append(chars, nexusChar{
+				name:   cName,
+				states: nil,
+			})
+			if delim == ';' {
+				break
+			}
+			continue
+		}
 		if delim != '/' {
 			return nil, fmt.Errorf("while reading char state labels: char %d [%q]: expecting '/' delimiter", i+1, token.String())
 		}
-		cName := strings.ReplaceAll(token.String(), "_", " ")
-		cName = strings.Join(strings.Fields(cName), " ")
 
 		// read state names
 		var states []string

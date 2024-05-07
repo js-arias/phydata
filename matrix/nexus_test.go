@@ -6,6 +6,7 @@ package matrix_test
 
 import (
 	"bytes"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -72,4 +73,67 @@ func TestWriteNexus(t *testing.T) {
 	}
 
 	cmpMatrix(t, got, m)
+}
+
+var nexusMatrixNoStates = `#NEXUS
+
+BEGIN TAXA;
+ 	TITLE Taxa;
+	DIMENSIONS NTAX=6;
+	TAXLABELS
+		Ascaphus_truei
+		Bufonidae
+		Discoglossidae
+		Pipidae
+		Ranidae
+		Rhinophrynidae
+	;
+END;
+
+BEGIN CHARACTERS;
+	TITLE 'Phylogenetic data matrix';
+	DIMENSIONS NCHAR=5;
+	FORMAT DATATYPE = STANDARD RESPECTCASE GAP = - MISSING = ? SYMBOLS = "0 1 2 3 4 5 6 7 8 9 A B C D E F";
+	CHARSTATELABELS
+		1 'pectoral_girdle',
+		2 'ribs,_fusion',
+		3 'scapula, relation to clavical',
+		4 'tail_muscle',
+		5 'vertebral_ossification';
+	MATRIX
+	Ascaphus_truei	00110
+	Bufonidae	01001
+	Discoglossidae	00102
+	Pipidae	{01}2102
+	Ranidae	11001
+	Rhinophrynidae	0-100
+	;
+END;
+`
+
+func TestReadNexusNoStateLabels(t *testing.T) {
+	m := matrix.New()
+	if err := m.ReadNexus(strings.NewReader(nexusMatrixNoStates), "kluge1969"); err != nil {
+		t.Fatalf("unable to read NEXUS data: %v", err)
+	}
+
+	chars := []string{"pectoral girdle", "ribs, fusion", "scapula, relation to clavical", "tail muscle", "vertebral ossification"}
+	c := m.Chars()
+	if !reflect.DeepEqual(c, chars) {
+		t.Errorf("characters: got %v, want %v", c, chars)
+	}
+
+	states := map[string][]string{
+		"tail muscle":                   {"state 0", "state 1"},
+		"ribs, fusion":                  {"state 0", "state 1", "state 2"},
+		"vertebral ossification":        {"state 0", "state 1", "state 2"},
+		"pectoral girdle":               {"state 0", "state 1"},
+		"scapula, relation to clavical": {"state 0", "state 1"},
+	}
+	for c, s := range states {
+		states := m.States(c)
+		if !reflect.DeepEqual(states, s) {
+			t.Errorf("character %q states: got %v, want %v", c, states, s)
+		}
+	}
 }
