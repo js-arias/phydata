@@ -37,7 +37,7 @@ func New() *Collection {
 // in this case if no specimen is given,
 // it will return an error.
 // The sequence can be aligned or unaligned.
-func (c *Collection) Add(taxon, spec, gene, genBank, seq string, aligned bool) error {
+func (c *Collection) Add(taxon, spec, gene, genBank, seq string) error {
 	taxon = canon(taxon)
 	if taxon == "" {
 		return nil
@@ -68,19 +68,18 @@ func (c *Collection) Add(taxon, spec, gene, genBank, seq string, aligned bool) e
 		sp = &specimen{
 			taxon: taxon,
 			name:  spec,
-			genes: make(map[string]map[string]genBankSequence),
+			genes: make(map[string]map[string]*genBankSequence),
 		}
 		c.specs[spec] = sp
 	}
 
 	gb, ok := sp.genes[gene]
 	if !ok {
-		gb = make(map[string]genBankSequence)
+		gb = make(map[string]*genBankSequence)
 		sp.genes[gene] = gb
 	}
-	gb[genBank] = genBankSequence{
-		seq:     seq,
-		aligned: aligned,
+	gb[genBank] = &genBankSequence{
+		seq: seq,
 	}
 
 	return nil
@@ -128,22 +127,8 @@ func (c *Collection) Genes() []string {
 // gene,
 // and genBank accession.
 func (c *Collection) Sequence(specimen, gene, genBank string) string {
-	specimen = specID(specimen)
-	if specimen == "" {
-		return ""
-	}
-
-	sp, ok := c.specs[specimen]
-	if !ok {
-		return ""
-	}
-	gene = strings.TrimSpace(strings.ToLower(gene))
-	gb, ok := sp.genes[gene]
-	if !ok {
-		return ""
-	}
-	seq, ok := gb[genBank]
-	if !ok {
+	seq := c.sequence(specimen, gene, genBank)
+	if seq == nil {
 		return ""
 	}
 	return seq.seq
@@ -159,15 +144,113 @@ func (c *Collection) Specimens() []string {
 	return specs
 }
 
+// Field is used to define additional information fields
+// of a DNA gene.
+type Field string
+
+// Additional sequence fields.
+const (
+	Aligned   Field = "aligned"
+	Protein   Field = "protein"
+	Organelle Field = "organelle"
+	Reference Field = "reference"
+	Comments  Field = "comments"
+)
+
+// Set sets the value of an additional information
+// for a sequence.
+func (c *Collection) Set(specimen, gene, genBank, val string, field Field) {
+	seq := c.sequence(specimen, gene, genBank)
+	if seq == nil {
+		return
+	}
+
+	val = strings.Join(strings.Fields(val), " ")
+
+	switch field {
+	case Aligned:
+		seq.aligned = false
+		if strings.ToLower(val) == "true" {
+			seq.aligned = true
+		}
+	case Protein:
+		seq.protein = false
+		if strings.ToLower(val) == "true" {
+			seq.protein = true
+		}
+	case Organelle:
+		seq.organelle = strings.ToLower(val)
+	case Reference:
+		seq.ref = val
+	case Comments:
+		seq.comment = val
+	}
+}
+
+func (c *Collection) Val(specimen, gene, genBank string, field Field) string {
+	seq := c.sequence(specimen, gene, genBank)
+	if seq == nil {
+		return ""
+	}
+
+	switch field {
+	case Aligned:
+		if seq.aligned {
+			return "true"
+		}
+		return "false"
+	case Protein:
+		if seq.protein {
+			return "true"
+		}
+		return "false"
+	case Organelle:
+		return seq.organelle
+	case Reference:
+		return seq.ref
+	case Comments:
+		return seq.comment
+	}
+
+	return ""
+}
+
+func (c *Collection) sequence(specimen, gene, genBank string) *genBankSequence {
+	specimen = specID(specimen)
+	if specimen == "" {
+		return nil
+	}
+
+	sp, ok := c.specs[specimen]
+	if !ok {
+		return nil
+	}
+	gene = strings.TrimSpace(strings.ToLower(gene))
+	gb, ok := sp.genes[gene]
+	if !ok {
+		return nil
+	}
+	seq, ok := gb[genBank]
+	if !ok {
+		return nil
+	}
+
+	return seq
+}
+
 type specimen struct {
 	taxon string
 	name  string
-	genes map[string]map[string]genBankSequence
+	genes map[string]map[string]*genBankSequence
 }
 
 type genBankSequence struct {
-	seq     string
-	aligned bool
+	seq       string
+	aligned   bool
+	protein   bool
+	organelle string
+	ref       string
+	comment   string
 }
 
 // Canon returns a taxon name
