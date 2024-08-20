@@ -167,3 +167,59 @@ func newCollection() *dna.Collection {
 	c.Set("genbank:xm_003897809", "eef1a1", "XM_003897809", "nucleus", dna.Organelle)
 	return c
 }
+
+func cmpCollection(t testing.TB, got, want *dna.Collection) {
+	t.Helper()
+
+	specs := want.Specimens()
+	csp := got.Specimens()
+	if !reflect.DeepEqual(csp, specs) {
+		t.Errorf("specimens: got %v, want %v", csp, specs)
+	}
+
+	genes := want.Genes()
+	cgn := got.Genes()
+	if !reflect.DeepEqual(cgn, genes) {
+		t.Errorf("genes: got %v, want %v", cgn, genes)
+	}
+
+	genbank := want.GenBank()
+	cgb := got.GenBank()
+	if !reflect.DeepEqual(cgb, genbank) {
+		t.Errorf("genbank: got %v, want %v", cgb, genbank)
+	}
+
+	for _, tax := range want.Taxa() {
+		for _, spec := range want.TaxSpec(tax) {
+			for _, gene := range want.SpecGene(spec) {
+				for _, acc := range want.GeneAccession(spec, gene) {
+					seq := want.Sequence(spec, gene, acc)
+					s := got.Sequence(spec, gene, acc)
+					if s != seq {
+						t.Errorf("sequence %q: specimen %q, gene %q, accession %q: got %q, want %q", tax, spec, gene, acc, s, seq)
+					}
+
+					alg := want.Val(spec, gene, acc, dna.Aligned)
+					aligned := got.Val(spec, gene, acc, dna.Aligned)
+					if aligned != alg {
+						t.Errorf("sequence %q: specimen %q, gene %q, accession %q: aligned: got %q, want %q", tax, spec, gene, acc, aligned, alg)
+					}
+
+					prt := want.Val(spec, gene, acc, dna.Protein)
+					protein := got.Val(spec, gene, acc, dna.Aligned)
+					if protein != prt {
+						t.Errorf("sequence %q: specimen %q, gene %q, accession %q: protein: got %q, want %q", tax, spec, gene, acc, protein, prt)
+					}
+
+					org := want.Val(spec, gene, acc, dna.Organelle)
+					organelle := got.Val(spec, gene, acc, dna.Organelle)
+					if organelle != org {
+						t.Errorf("sequence %q: specimen %q, gene %q, accession %q: organelle: got %q, want %q", tax, spec, gene, acc, organelle, org)
+					}
+				}
+			}
+
+		}
+	}
+
+}

@@ -123,6 +123,33 @@ func (c *Collection) Genes() []string {
 	return genes
 }
 
+// GeneAccession returns the accession
+// for a given gene
+// of a given specimen.
+func (c *Collection) GeneAccession(specimen, gene string) []string {
+	specimen = specID(specimen)
+	if specimen == "" {
+		return nil
+	}
+
+	sp, ok := c.specs[specimen]
+	if !ok {
+		return nil
+	}
+	gene = strings.TrimSpace(strings.ToLower(gene))
+	gb, ok := sp.genes[gene]
+	if !ok {
+		return nil
+	}
+
+	acc := make([]string, 0, len(gb))
+	for a := range gb {
+		acc = append(acc, a)
+	}
+	slices.Sort(acc)
+	return acc
+}
+
 // Sequence returns a sequence for a given specimen,
 // gene,
 // and genBank accession.
@@ -141,6 +168,54 @@ func (c *Collection) Specimens() []string {
 		specs = append(specs, sp.name)
 	}
 	slices.Sort(specs)
+	return specs
+}
+
+// SpecGene return the genes defined for a given specimen.
+func (c *Collection) SpecGene(specimen string) []string {
+	specimen = specID(specimen)
+	sp, ok := c.specs[specimen]
+	if !ok {
+		return nil
+	}
+
+	genes := make([]string, 0, len(sp.genes))
+	for g := range sp.genes {
+		genes = append(genes, g)
+	}
+	slices.Sort(genes)
+
+	return genes
+}
+
+// Taxa returns the taxa defined in the matrix.
+func (c *Collection) Taxa() []string {
+	taxa := make(map[string]bool)
+	for _, sp := range c.specs {
+		taxa[sp.taxon] = true
+	}
+
+	txLs := make([]string, 0, len(taxa))
+	for t := range taxa {
+		txLs = append(txLs, t)
+	}
+	slices.Sort(txLs)
+
+	return txLs
+}
+
+// TaxSpec returns the specimens of a given taxon.
+func (c *Collection) TaxSpec(name string) []string {
+	name = canon(name)
+	var specs []string
+	for _, sp := range c.specs {
+		if sp.taxon != name {
+			continue
+		}
+		specs = append(specs, sp.name)
+	}
+	slices.Sort(specs)
+
 	return specs
 }
 
