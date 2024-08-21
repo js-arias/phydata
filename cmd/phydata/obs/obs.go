@@ -9,10 +9,12 @@ package obs
 import (
 	"github.com/js-arias/command"
 	"github.com/js-arias/phydata/cmd/phydata/obs/add"
+	"github.com/js-arias/phydata/cmd/phydata/obs/chars"
 )
 
 func init() {
 	Command.Add(add.Command)
+	Command.Add(chars.Command)
 }
 
 var Command = &command.Command{
