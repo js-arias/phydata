@@ -10,11 +10,13 @@ import (
 	"github.com/js-arias/command"
 	"github.com/js-arias/phydata/cmd/phydata/obs/add"
 	"github.com/js-arias/phydata/cmd/phydata/obs/chars"
+	"github.com/js-arias/phydata/cmd/phydata/obs/taxa"
 )
 
 func init() {
 	Command.Add(add.Command)
 	Command.Add(chars.Command)
+	Command.Add(taxa.Command)
 }
 
 var Command = &command.Command{
