@@ -7,9 +7,12 @@
 package add
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/js-arias/command"
@@ -19,6 +22,7 @@ import (
 
 var Command = &command.Command{
 	Usage: `add [-f|--file <dna-file>]
+	[--filter <file>]
 	<project-file> <dna-data-file>`,
 	Short: "add DNA sequences to a project",
 	Long: `
@@ -30,6 +34,10 @@ project file exists, a new project will be created.
 
 The second arguments is the name of the file that contains the DNA sequences
 that will be added to the project. The input file must be DNA sequence file.
+By default, all data will be added. If a file with taxon names is defined by
+the flag --filter, only the sequences for the taxa defined in the file will be
+used. In this filter file, each taxon name must be given per line. Empty lines
+or lines starting with '#' will be ignored.
 
 By default, the DNA data will be stored in the DNA file currently defined for
 the project. If the project does not have a DNA file, a ew one will be created
@@ -43,10 +51,12 @@ project (previously defined DNA sequences will be preserved).
 }
 
 var dnaFile string
+var filterFile string
 
 func setFlags(c *command.Command) {
 	c.Flags().StringVar(&dnaFile, "file", "", "")
 	c.Flags().StringVar(&dnaFile, "f", "", "")
+	c.Flags().StringVar(&filterFile, "filter", "", "")
 }
 
 func run(c *command.Command, args []string) error {
@@ -75,8 +85,20 @@ func run(c *command.Command, args []string) error {
 	if err := readDNAFile(in, nd); err != nil {
 		return err
 	}
+	var filter map[string]bool
+	if filterFile != "" {
+		filter, err = readFilter(filterFile)
+		if err != nil {
+			return err
+		}
+	}
 
 	for _, tax := range nd.Taxa() {
+		if filter != nil {
+			if !filter[strings.ToLower(tax)] {
+				continue
+			}
+		}
 		for _, spec := range nd.TaxSpec(tax) {
 			for _, gene := range nd.SpecGene(spec) {
 				for _, acc := range nd.GeneAccession(spec, gene) {
@@ -160,4 +182,35 @@ func writeDNA(name string, c *dna.Collection) (err error) {
 		return fmt.Errorf("while writing to %q: %v", name, err)
 	}
 	return nil
+}
+
+func readFilter(name string) (map[string]bool, error) {
+	f, err := os.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	r := bufio.NewReader(f)
+	filter := make(map[string]bool)
+	for i := 1; ; i++ {
+		ln, err := r.ReadString('\n')
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("on file %q: line %d: %v", name, i, err)
+		}
+
+		n := strings.Join(strings.Fields(ln), " ")
+		if n == "" {
+			continue
+		}
+		if n[0] == '#' {
+			continue
+		}
+		filter[strings.ToLower(n)] = true
+	}
+
+	return filter, nil
 }
