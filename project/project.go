@@ -22,6 +22,9 @@ type Dataset string
 
 // Valid dataset types
 const (
+	// File for DNA sequences.
+	DNA = "dna"
+
 	// File with an hierarchy of homologues.
 	Homologues Dataset = "homologues"
 

@@ -24,6 +24,7 @@ func TestProject(t *testing.T) {
 	sets := []setPath{
 		{project.Observations, "observations.tab"},
 		{project.Homologues, "homologues.tab"},
+		{project.DNA, "dna.tab"},
 	}
 
 	for _, s := range sets {
