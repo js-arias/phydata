@@ -8,11 +8,14 @@ package matrix
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"reflect"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/js-arias/command"
 	"github.com/js-arias/phydata/matrix"
@@ -22,6 +25,7 @@ import (
 
 var Command = &command.Command{
 	Usage: `matrix [-o|--output <file>]
+	[--taxa <file>]
 	<project> <data-type>...`,
 	Short: "build a phylogenetic data matrix",
 	Long: `
@@ -40,16 +44,25 @@ By default, the matrix will be printed in the standard output. To define an
 output file use the flag --output, or -o to define the file name.
 
 The matrix format is the TNT format.
+
+By default, all taxa in the project will be used to build the matrix. If the
+flag --taxa is defined with a file, the taxa in that file will be used as the
+terminals of the matrix, using the order given in the file. In the file each
+line will be read as a taxon name. Blank lines and lines starting with '#'
+will be ignored.
+
 	`,
 	SetFlags: setFlags,
 	Run:      run,
 }
 
 var output string
+var txLsFile string
 
 func setFlags(c *command.Command) {
 	c.Flags().StringVar(&output, "output", "", "")
 	c.Flags().StringVar(&output, "o", "", "")
+	c.Flags().StringVar(&txLsFile, "taxa", "", "")
 }
 
 func run(c *command.Command, args []string) (err error) {
@@ -99,7 +112,7 @@ func run(c *command.Command, args []string) (err error) {
 	out := c.Stdout()
 	if output != "" {
 		var f *os.File
-		f, err = os.Open(output)
+		f, err = os.Create(output)
 		if err != nil {
 			return err
 		}
@@ -112,7 +125,9 @@ func run(c *command.Command, args []string) (err error) {
 		out = f
 	}
 
-	printMatrix(out, m, coll)
+	if err := printMatrix(out, m, coll); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -175,10 +190,22 @@ func getNumChars(m *matrix.Matrix, coll *dna.Collection) int {
 	return nc
 }
 
-func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) {
+func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) error {
+	var txLs []string
+	if txLsFile != "" {
+		var err error
+		txLs, err = readTaxa(txLsFile)
+		if err != nil {
+			return err
+		}
+	}
+
 	bw := bufio.NewWriter(w)
 
 	nt := getNumTaxa(m, coll)
+	if len(txLs) > 0 {
+		nt = len(txLs)
+	}
 	nc := getNumChars(m, coll)
 
 	fmt.Fprintf(bw, "mxram 250 ;\ntaxname +255 ;\nxread %d %d\n\n", nc, nt)
@@ -199,7 +226,12 @@ func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) {
 			states[c] = stID
 		}
 
-		for _, tx := range m.Taxa() {
+		ls := m.Taxa()
+		if len(txLs) > 0 {
+			ls = txLs
+		}
+
+		for _, tx := range ls {
 			ntx := strings.Join(strings.Fields(tx), "_")
 			fmt.Fprintf(bw, "%s\t", ntx)
 			txSp := m.TaxSpec(tx)
@@ -259,7 +291,12 @@ func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) {
 	if coll != nil {
 		for _, gene := range coll.Genes() {
 			fmt.Fprintf(bw, "&[dna nogaps]\n")
-			for _, tx := range coll.Taxa() {
+
+			ls := coll.Taxa()
+			if len(txLs) > 0 {
+				ls = txLs
+			}
+			for _, tx := range ls {
 				var seq string
 				for _, spec := range coll.TaxSpec(tx) {
 					for _, acc := range coll.GeneAccession(spec, gene) {
@@ -280,7 +317,11 @@ func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) {
 	}
 
 	fmt.Fprintf(bw, ";\n\ncc - . ;\n\nproc /; \n")
-	bw.Flush()
+	if err := bw.Flush(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func countNucleotides(seq string) float64 {
@@ -296,4 +337,47 @@ func countNucleotides(seq string) float64 {
 		}
 	}
 	return num
+}
+
+func readTaxa(name string) ([]string, error) {
+	f, err := os.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	r := bufio.NewReader(f)
+	var txLs []string
+	for i := 1; ; i++ {
+		ln, err := r.ReadString('\n')
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("on file %q: line %d: %v", name, i, err)
+		}
+
+		n := canon(ln)
+		if n == "" {
+			continue
+		}
+		if n[0] == '#' {
+			continue
+		}
+		txLs = append(txLs, n)
+	}
+
+	return txLs, nil
+}
+
+// Canon returns a taxon name
+// in its canonical form.
+func canon(name string) string {
+	name = strings.Join(strings.Fields(name), " ")
+	if name == "" {
+		return ""
+	}
+	name = strings.ToLower(name)
+	r, n := utf8.DecodeRuneInString(name)
+	return string(unicode.ToUpper(r)) + name[n:]
 }
