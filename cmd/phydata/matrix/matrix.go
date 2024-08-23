@@ -25,7 +25,7 @@ import (
 
 var Command = &command.Command{
 	Usage: `matrix [-o|--output <file>]
-	[--taxa <file>]
+	[--taxa <file>] [--chars <file>]
 	<project> <data-type>...`,
 	Short: "build a phylogenetic data matrix",
 	Long: `
@@ -51,6 +51,11 @@ terminals of the matrix, using the order given in the file. In the file each
 line will be read as a taxon name. Blank lines and lines starting with '#'
 will be ignored.
 
+By default, when making a matrix with observations, all characters will be
+used to build the matrix. If the flag --chars is defined with a file, the
+characters in the file will be used in the given order. In the file each line
+will be interpreted as a character. Blank lines and lines starting with '#'
+will be ignored.
 	`,
 	SetFlags: setFlags,
 	Run:      run,
@@ -58,11 +63,13 @@ will be ignored.
 
 var output string
 var txLsFile string
+var charFile string
 
 func setFlags(c *command.Command) {
 	c.Flags().StringVar(&output, "output", "", "")
 	c.Flags().StringVar(&output, "o", "", "")
 	c.Flags().StringVar(&txLsFile, "taxa", "", "")
+	c.Flags().StringVar(&charFile, "chars", "", "")
 }
 
 func run(c *command.Command, args []string) (err error) {
@@ -175,10 +182,13 @@ func getNumTaxa(d ...taxaer) int {
 	return len(tn)
 }
 
-func getNumChars(m *matrix.Matrix, coll *dna.Collection) int {
+func getNumChars(chLs []string, m *matrix.Matrix, coll *dna.Collection) int {
 	var nc int
 	if m != nil {
 		nc = len(m.Chars())
+		if len(chLs) > 0 {
+			nc = len(chLs)
+		}
 	}
 
 	if coll != nil {
@@ -200,13 +210,22 @@ func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) error {
 		}
 	}
 
+	var chLs []string
+	if charFile != "" {
+		var err error
+		chLs, err = readFileList(charFile)
+		if err != nil {
+			return err
+		}
+	}
+
 	bw := bufio.NewWriter(w)
 
 	nt := getNumTaxa(m, coll)
 	if len(txLs) > 0 {
 		nt = len(txLs)
 	}
-	nc := getNumChars(m, coll)
+	nc := getNumChars(chLs, m, coll)
 
 	fmt.Fprintf(bw, "mxram 250 ;\ntaxname +255 ;\nxread %d %d\n\n", nc, nt)
 	if m != nil {
@@ -214,6 +233,9 @@ func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) error {
 
 		states := make(map[string]map[int]string)
 		chars := m.Chars()
+		if len(chLs) > 0 {
+			chars = chLs
+		}
 		for _, c := range chars {
 			st := m.States(c)
 			stID := make(map[int]string, len(st))
@@ -340,6 +362,20 @@ func countNucleotides(seq string) float64 {
 }
 
 func readTaxa(name string) ([]string, error) {
+	ls, err := readFileList(name)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, n := range ls {
+		n = canon(n)
+		ls[i] = n
+	}
+
+	return ls, nil
+}
+
+func readFileList(name string) ([]string, error) {
 	f, err := os.Open(name)
 	if err != nil {
 		return nil, err
@@ -347,7 +383,7 @@ func readTaxa(name string) ([]string, error) {
 	defer f.Close()
 
 	r := bufio.NewReader(f)
-	var txLs []string
+	var ls []string
 	for i := 1; ; i++ {
 		ln, err := r.ReadString('\n')
 		if errors.Is(err, io.EOF) {
@@ -357,17 +393,17 @@ func readTaxa(name string) ([]string, error) {
 			return nil, fmt.Errorf("on file %q: line %d: %v", name, i, err)
 		}
 
-		n := canon(ln)
+		n := strings.Join(strings.Fields(ln), " ")
 		if n == "" {
 			continue
 		}
 		if n[0] == '#' {
 			continue
 		}
-		txLs = append(txLs, n)
+		ls = append(ls, strings.ToLower(n))
 	}
 
-	return txLs, nil
+	return ls, nil
 }
 
 // Canon returns a taxon name
