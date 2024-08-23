@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/js-arias/command"
 	"github.com/js-arias/phydata/cmd/phydata/dna"
+	"github.com/js-arias/phydata/cmd/phydata/matrix"
 	"github.com/js-arias/phydata/cmd/phydata/obs"
 )
 
@@ -19,6 +20,7 @@ var app = &command.Command{
 
 func init() {
 	app.Add(dna.Command)
+	app.Add(matrix.Command)
 	app.Add(obs.Command)
 }
 

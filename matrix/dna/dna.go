@@ -188,6 +188,27 @@ func (c *Collection) SpecGene(specimen string) []string {
 	return genes
 }
 
+// MaxLen returns the maximum length
+// of a sequence for a given gene.
+func (c *Collection) MaxLen(gene string) int {
+	gene = strings.ToLower(strings.TrimSpace(gene))
+	var max int
+	for _, sp := range c.specs {
+		gb, ok := sp.genes[gene]
+		if !ok {
+			continue
+		}
+		for _, s := range gb {
+			ln := len(s.seq)
+			if ln > max {
+				max = ln
+			}
+		}
+	}
+
+	return max
+}
+
 // Taxa returns the taxa defined in the matrix.
 func (c *Collection) Taxa() []string {
 	taxa := make(map[string]bool)
