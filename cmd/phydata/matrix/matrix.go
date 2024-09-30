@@ -24,7 +24,9 @@ import (
 )
 
 var Command = &command.Command{
-	Usage: `matrix [-o|--output <file>]
+	Usage: `matrix
+	[-f|--format <format>]
+	[-o|--output <file>]
 	[--taxa <file>] [--chars <file>]
 	<project> <data-type>...`,
 	Short: "build a phylogenetic data matrix",
@@ -43,7 +45,11 @@ included in the data matrix. Valid values are:
 By default, the matrix will be printed in the standard output. To define an
 output file use the flag --output, or -o to define the file name.
 
-The matrix format is the TNT format.
+by default, the matrix format is the TNT format. Use the flag -f or --format
+to define a format. Valid formats are:
+
+	tnt   used for tnt output (default)
+	nexus used for nexus output
 
 By default, all taxa in the project will be used to build the matrix. If the
 flag --taxa is defined with a file, the taxa in that file will be used as the
@@ -62,6 +68,7 @@ will be ignored.
 }
 
 var output string
+var format string
 var txLsFile string
 var charFile string
 
@@ -70,6 +77,8 @@ func setFlags(c *command.Command) {
 	c.Flags().StringVar(&output, "o", "", "")
 	c.Flags().StringVar(&txLsFile, "taxa", "", "")
 	c.Flags().StringVar(&charFile, "chars", "", "")
+	c.Flags().StringVar(&format, "format", "tnt", "")
+	c.Flags().StringVar(&format, "f", "tnt", "")
 }
 
 func run(c *command.Command, args []string) (err error) {
@@ -132,9 +141,19 @@ func run(c *command.Command, args []string) (err error) {
 		out = f
 	}
 
-	if err := printMatrix(out, m, coll); err != nil {
-		return err
+	switch strings.ToLower(format) {
+	case "tnt":
+		if err := printTNTMatrix(out, m, coll); err != nil {
+			return err
+		}
+	case "nexus":
+		if err := printNexusMatrix(out, m, coll); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unknown format %q", format)
 	}
+
 	return nil
 }
 
@@ -182,6 +201,42 @@ func getNumTaxa(d ...taxaer) int {
 	return len(tn)
 }
 
+func getTaxaList(d ...taxaer) []string {
+	tn := make(map[string]bool)
+	for _, v := range d {
+		if reflect.ValueOf(v).IsNil() {
+			continue
+		}
+		for _, tx := range v.Taxa() {
+			tn[tx] = true
+		}
+	}
+
+	ls := make([]string, 0, len(tn))
+	for n := range tn {
+		ls = append(ls, n)
+	}
+
+	return ls
+}
+
+func validTaxNames(ls []string) map[string]string {
+	m := make(map[string]string, len(ls))
+	for _, n := range ls {
+		v := n
+		if strings.ContainsRune(v, '&') {
+			v = strings.ReplaceAll(v, "&", "+")
+		}
+		if strings.ContainsRune(v, '"') {
+			v = strings.ReplaceAll(v, `"`, "")
+		}
+
+		v = strings.Join(strings.Fields(v), "_")
+		m[n] = v
+	}
+	return m
+}
+
 func getNumChars(chLs []string, m *matrix.Matrix, coll *dna.Collection) int {
 	var nc int
 	if m != nil {
@@ -200,7 +255,7 @@ func getNumChars(chLs []string, m *matrix.Matrix, coll *dna.Collection) int {
 	return nc
 }
 
-func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) error {
+func printTNTMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) error {
 	var txLs []string
 	if txLsFile != "" {
 		var err error
@@ -339,6 +394,169 @@ func printMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) error {
 	}
 
 	fmt.Fprintf(bw, ";\n\ncc - . ;\n\nproc /; \n")
+	if err := bw.Flush(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func printNexusMatrix(w io.Writer, m *matrix.Matrix, coll *dna.Collection) error {
+	var txLs []string
+	if txLsFile != "" {
+		var err error
+		txLs, err = readTaxa(txLsFile)
+		if err != nil {
+			return err
+		}
+	}
+
+	var chLs []string
+	if charFile != "" {
+		var err error
+		chLs, err = readFileList(charFile)
+		if err != nil {
+			return err
+		}
+	}
+
+	bw := bufio.NewWriter(w)
+
+	fmt.Fprintf(bw, "#NEXUS\n\n")
+
+	nt := getNumTaxa(m, coll)
+	if len(txLs) > 0 {
+		nt = len(txLs)
+	}
+	nc := getNumChars(chLs, m, coll)
+
+	nMorf := getNumChars(chLs, m, nil)
+	nDNA := getNumChars(nil, nil, coll)
+
+	fmt.Fprintf(bw, "Begin data;\n")
+	fmt.Fprintf(bw, "\tDimensions ntax=%d nchar=%d;\n", nt, nc)
+	if nMorf > 0 && nDNA > 0 {
+		fmt.Fprintf(bw, "\tFormat datatype=mixed(standard:1-%d,DNA:%d-%d) interleave=yes gap=- missing=?;\n\n", nMorf, nMorf+1, nc)
+	} else if nMorf > 0 {
+		fmt.Fprintf(bw, "\tFormat datatype=standard missing=?;\n\n")
+	} else {
+		fmt.Fprintf(bw, "\tFormat datatype=DNA interleave=yes gap=- missing=?;\n\n")
+	}
+
+	if len(txLs) == 0 {
+		txLs = getTaxaList(m, coll)
+	}
+	names := validTaxNames(txLs)
+
+	fmt.Fprintf(bw, "\tMatrix\n\n")
+
+	if m != nil {
+		fmt.Fprintf(bw, "[Morphology]\n")
+
+		states := make(map[string]map[int]string)
+		chars := m.Chars()
+		if len(chLs) > 0 {
+			chars = chLs
+		}
+		for _, c := range chars {
+			st := m.States(c)
+			stID := make(map[int]string, len(st))
+			for i, s := range st {
+				if i > 9 {
+					break
+				}
+				stID[i] = s
+			}
+			states[c] = stID
+		}
+
+		for _, tx := range txLs {
+			ntx := names[tx]
+			fmt.Fprintf(bw, "%s\t", ntx)
+			txSp := m.TaxSpec(tx)
+			for _, c := range chars {
+				na := false
+				st := make(map[string]bool, len(states[c]))
+				for _, sp := range txSp {
+					obs := m.Obs(sp, c)
+					if len(obs) == 0 {
+						continue
+					}
+					if obs[0] == matrix.NotApplicable {
+						na = true
+						continue
+					}
+					if obs[0] == matrix.Unknown {
+						continue
+					}
+					for _, o := range obs {
+						st[o] = true
+					}
+				}
+				if len(st) == 0 {
+					if na {
+						fmt.Fprintf(bw, "-")
+						continue
+					}
+					fmt.Fprintf(bw, "?")
+					continue
+				}
+				obSt := states[c]
+				if len(st) > 1 {
+					fmt.Fprintf(bw, "{")
+					for i := 0; i < len(obSt); i++ {
+						v := obSt[i]
+						if !st[v] {
+							continue
+						}
+						fmt.Fprintf(bw, "%d", i)
+					}
+					fmt.Fprintf(bw, "}")
+					continue
+				}
+				for i := 0; i < len(obSt); i++ {
+					v := obSt[i]
+					if st[v] {
+						fmt.Fprintf(bw, "%d", i)
+						break
+					}
+				}
+			}
+			fmt.Fprintf(bw, "\n")
+		}
+		fmt.Fprintf(bw, "\n")
+	}
+	if coll != nil {
+		for _, gene := range coll.Genes() {
+			fmt.Fprintf(bw, "[%s]\n", gene)
+			ns := coll.MaxLen(gene)
+
+			for _, tx := range txLs {
+				var seq string
+				for _, spec := range coll.TaxSpec(tx) {
+					for _, acc := range coll.GeneAccession(spec, gene) {
+						s := coll.Sequence(spec, gene, acc)
+						if countNucleotides(s) > countNucleotides(seq) {
+							seq = s
+						}
+					}
+				}
+				ntx := names[tx]
+				if len(seq) == 0 {
+					fmt.Fprintf(bw, "%s\t", ntx)
+					for i := 0; i < ns; i++ {
+						fmt.Fprintf(bw, "?")
+					}
+					fmt.Fprintf(bw, "\n")
+					continue
+				}
+				fmt.Fprintf(bw, "%s\t%s\n", ntx, seq)
+			}
+			fmt.Fprintf(bw, "\n")
+		}
+	}
+
+	fmt.Fprintf(bw, "\t;\n\n")
 	if err := bw.Flush(); err != nil {
 		return err
 	}
