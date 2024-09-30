@@ -627,6 +627,7 @@ func readFileList(name string) ([]string, error) {
 // Canon returns a taxon name
 // in its canonical form.
 func canon(name string) string {
+	name = strings.ReplaceAll(name, "_", " ")
 	name = strings.Join(strings.Fields(name), " ")
 	if name == "" {
 		return ""
